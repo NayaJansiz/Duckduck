@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>🦆 Duck Hunt · Admin</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --duck:    #FFD700;
+    --duck-dim:#B89800;
+    --bg:      #0d0f14;
+    --surface: #151820;
+    --card:    #1c1f2b;
+    --border:  #262a38;
+    --text:    #e8eaf0;
+    --muted:   #6b7080;
+    --danger:  #e05252;
+    --success: #5ec46a;
+    --gold:    #FFD700;
+    --silver:  #C0C8D8;
+    --bronze:  #CD7F32;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--duck);
+    padding: 22px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--duck);
+  }
+  header h1 span { color: var(--text); }
+  header p { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+
+  .admin-badge {
+    background: #1f1a0a;
+    border: 1px solid var(--duck-dim);
+    color: var(--duck);
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    padding: 5px 12px;
+    border-radius: 20px;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 20px;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  @media (max-width: 720px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  /* ── Panels ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .panel-body { padding: 20px; }
+
+  /* ── Form ── */
+  label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="text"]:focus { border-color: var(--duck); }
+
+  .field { margin-bottom: 16px; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-block;
+    width: 100%;
+    padding: 11px;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 0.1s;
+    text-align: center;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  .btn-duck {
+    background: var(--duck);
+    color: #0d0f14;
+    margin-top: 4px;
+  }
+
+  .btn-danger {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    font-size: 0.82rem;
+    padding: 7px;
+    margin-top: 6px;
+  }
+
+  /* ── Active runners ── */
+  .runner-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .runner-info { flex: 1; min-width: 0; }
+  .runner-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .runner-timer {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--duck);
+    margin-top: 3px;
+  }
+
+  .done-btn {
+    background: var(--duck);
+    color: #0d0f14;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 16px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+  .done-btn:hover { opacity: 0.85; }
+  .done-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .no-runners {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  /* ── Leaderboard table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    font-size: 0.7rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  thead th.r { text-align: right; }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: var(--card); }
+  tbody td { padding: 11px 12px; font-size: 0.88rem; }
+
+  .rank-cell { text-align:center; font-family:'Space Mono',monospace; font-weight:700; width:44px; }
+  .rank-1 { color:var(--gold); }
+  .rank-2 { color:var(--silver); }
+  .rank-3 { color:var(--bronze); }
+  .rank-n { color:var(--muted); }
+
+  .time-cell { text-align:right; font-family:'Space Mono',monospace; color:var(--duck); }
+
+  .del-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+  .del-btn:hover { opacity: 1; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--card);
+    border: 1px solid var(--duck);
+    color: var(--text);
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .section-sep {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  .danger-zone-title {
+    font-size: 0.72rem;
+    color: var(--danger);
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  /* ── Loading overlay ── */
+  #loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(13,15,20,0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    font-family: 'Space Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--duck);
+    gap: 14px;
+  }
+  .spinner {
+    width: 22px; height: 22px;
+    border: 3px solid var(--border);
+    border-top-color: var(--duck);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  Loading duck data…
+</div>
+
+<header>
+  <div>
+    <h1>🦆 Duck <span>Treasure Hunt</span></h1>
+    <p>Admin Panel · Homs CP University Fair</p>
+  </div>
+  <div class="admin-badge">🔐 ADMIN</div>
+</header>
+
+<main>
+
+  <!-- LEFT: Start new runner -->
+  <div>
+    <div class="panel" style="margin-bottom:20px">
+      <div class="panel-header">🦆 Start a Runner</div>
+      <div class="panel-body">
+        <div class="field">
+          <label>PARTICIPANT NAME</label>
+          <input type="text" id="name-input" placeholder="e.g. Ahmed Hassan" />
+        </div>
+        <button class="btn btn-duck" id="start-btn" onclick="startRunner()">▶ Start Timer</button>
+      </div>
+    </div>
+
+    <!-- Active runners -->
+    <div class="panel">
+      <div class="panel-header">⏱ Currently Running</div>
+      <div class="panel-body" id="active-panel">
+        <div class="no-runners">Loading… 🦆</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Finished leaderboard -->
+  <div class="panel">
+    <div class="panel-header" style="justify-content:space-between">
+      <span>🏆 Finished — Standings</span>
+      <span id="finished-count" style="font-size:0.8rem;color:var(--muted);font-family:'Space Mono',monospace"></span>
+    </div>
+    <div class="panel-body">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:center">#</th>
+            <th>Name</th>
+            <th class="r">Time</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="finished-rows"></tbody>
+      </table>
+      <div id="finished-empty" style="display:none" class="no-runners">No finishers yet 🦆</div>
+
+      <div class="section-sep"></div>
+      <div class="danger-zone-title">DANGER ZONE</div>
+      <button class="btn btn-danger" onclick="resetAll()">🗑 Reset All Data</button>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+const BIN_ID  = '6ab2beffac6210605aea3add';
+const API_KEY = '$2a$10$kTWZAmRf2LMtsqir/UHGb.2Nd0YygmGZP0BOCtj/BZhiuO2TTgXjm';
+const BASE    = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+// In-memory cache of the full record
+// Shape: { participants: [...done entries], active: [...running entries] }
+let record = { participants: [], active: [] };
+
+// Track in-progress API writes to avoid race conditions
+let writing = false;
+let writeQueue = null;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmtTime(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}m ${String(s).padStart(2,'0')}s`;
+}
+
+function rankIcon(r) {
+  if (r === 1) return '🥇';
+  if (r === 2) return '🥈';
+  if (r === 3) return '🥉';
+  return r;
+}
+
+function rankClass(r) {
+  if (r === 1) return 'rank-1';
+  if (r === 2) return 'rank-2';
+  if (r === 3) return 'rank-3';
+  return 'rank-n';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── JSONBin ───────────────────────────────────────────────────────────────────
+
+async function fetchRecord() {
+  const res  = await fetch(`${BASE}/latest`, { headers: { 'X-Master-Key': API_KEY } });
+  const json = await res.json();
+  const rec  = json.record || {};
+  // Migrate old bins that only have "participants"
+  return {
+    participants: rec.participants || [],
+    active:       rec.active       || []
+  };
+}
+
+// Serialised write: if a write is in progress, queue the next value and flush after
+async function putRecord(newRecord) {
+  if (writing) {
+    writeQueue = newRecord;
+    return;
+  }
+  writing = true;
+  try {
+    await fetch(BASE, {
+      method:  'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+      body: JSON.stringify(newRecord)
+    });
+  } finally {
+    writing = false;
+    if (writeQueue !== null) {
+      const q = writeQueue;
+      writeQueue = null;
+      await putRecord(q);
+    }
+  }
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+
+async function startRunner() {
+  const nameEl = document.getElementById('name-input');
+  const btn    = document.getElementById('start-btn');
+  const name   = nameEl.value.trim();
+  if (!name) { showToast('⚠️ Enter a name first'); return; }
+
+  btn.disabled = true;
+
+  // Re-fetch to get latest before writing (avoid stomping concurrent edits)
+  record = await fetchRecord();
+  record.active.push({ name, startTs: Date.now() });
+  await putRecord(record);
+
+  nameEl.value = '';
+  btn.disabled = false;
+  nameEl.focus();
+
+  renderActive();
+  showToast(`🦆 Started: ${name}`);
+}
+
+async function finishRunner(idx) {
+  const btn = document.querySelector(`[data-finish="${idx}"]`);
+  if (btn) btn.disabled = true;
+
+  // Always re-fetch before mutating, to get the accurate startTs
+  record = await fetchRecord();
+
+  const runner = record.active[idx];
+  if (!runner) { showToast('⚠️ Runner not found — try refreshing'); return; }
+
+  const elapsed = Math.round((Date.now() - runner.startTs) / 1000);
+
+  record.participants.push({ name: runner.name, elapsed, done: true });
+  record.active.splice(idx, 1);
+  await putRecord(record);
+
+  renderActive();
+  renderFinished();
+  showToast(`✅ ${runner.name} — ${fmtTime(elapsed)}`);
+}
+
+async function deleteFinished(idx) {
+  if (!confirm('Remove this entry?')) return;
+  record = await fetchRecord();
+  record.participants.splice(idx, 1);
+  await putRecord(record);
+  renderFinished();
+  showToast('🗑 Entry removed');
+}
+
+async function resetAll() {
+  if (!confirm('Delete ALL results and active runners? This cannot be undone.')) return;
+  record = { participants: [], active: [] };
+  await putRecord(record);
+  renderActive();
+  renderFinished();
+  showToast('🗑 All data cleared');
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+let tickInterval = null;
+
+function renderActive() {
+  const panel   = document.getElementById('active-panel');
+  const runners = record.active || [];
+
+  if (!runners.length) {
+    panel.innerHTML = '<div class="no-runners">No one is running yet 🦆</div>';
+    if (tickInterval) { clearInterval(tickInterval); tickInterval = null; }
+    return;
+  }
+
+  function buildCards() {
+    panel.innerHTML = runners.map((r, i) => {
+      const elapsed = Math.round((Date.now() - r.startTs) / 1000);
+      return `
+        <div class="runner-card">
+          <div class="runner-info">
+            <div class="runner-name">🦆 ${r.name}</div>
+            <div class="runner-timer">${fmtTime(elapsed)}</div>
+          </div>
+          <button class="done-btn" data-finish="${i}" onclick="finishRunner(${i})">Done ✓</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  buildCards();
+
+  if (!tickInterval) {
+    tickInterval = setInterval(() => {
+      if (!(record.active || []).length) { clearInterval(tickInterval); tickInterval = null; return; }
+      buildCards();
+    }, 1000);
+  }
+}
+
+function renderFinished() {
+  const sorted = [...(record.participants || [])]
+    .filter(p => p.done)
+    .sort((a, b) => a.elapsed - b.elapsed);
+
+  const tbody = document.getElementById('finished-rows');
+  const empty = document.getElementById('finished-empty');
+  const count = document.getElementById('finished-count');
+
+  count.textContent = sorted.length ? `${sorted.length} finisher${sorted.length > 1 ? 's' : ''}` : '';
+
+  if (!sorted.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+
+  empty.style.display = 'none';
+
+  tbody.innerHTML = sorted.map((p, i) => {
+    const rank    = i + 1;
+    const origIdx = record.participants.findIndex(
+      x => x.name === p.name && x.elapsed === p.elapsed && x.done
+    );
+    return `
+      <tr>
+        <td class="rank-cell ${rankClass(rank)}">${rankIcon(rank)}</td>
+        <td>${p.name}</td>
+        <td class="time-cell">${fmtTime(p.elapsed)}</td>
+        <td><button class="del-btn" onclick="deleteFinished(${origIdx})" title="Remove">✕</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ── Periodic sync (catch changes from other devices / race conditions) ─────────
+
+async function syncFromServer() {
+  if (writing) return; // skip if we're mid-write
+  const fresh = await fetchRecord();
+  // Only update active from server when we have no pending writes
+  record = fresh;
+  renderActive();
+  renderFinished();
+}
+
+// ── Enter key ─────────────────────────────────────────────────────────────────
+document.getElementById('name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startRunner();
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    record = await fetchRecord();
+  } catch (e) {
+    console.error('Init fetch failed:', e);
+    showToast('⚠️ Could not reach JSONBin');
+  }
+  document.getElementById('loading-overlay').style.display = 'none';
+  renderActive();
+  renderFinished();
+  // Sync every 10s so a second admin device stays in sync too
+  setInterval(syncFromServer, 10000);
+})();
+</script>
+</body>
+</html>
